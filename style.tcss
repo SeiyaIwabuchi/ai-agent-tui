@@ -1,0 +1,46 @@
+/* app.py */
+Screen {
+        align: center top;
+        padding: 1 3 1 3;
+    }
+
+
+/* widgets/chat_screen.py */
+#promptForm {
+    dock: bottom;
+    height: auto;
+    background: $primary-background;
+    border: blank;
+}
+
+#chatHistory {
+}
+
+#promptFormInput {
+    
+}
+
+#promptFormAddButton {
+    dock: right;
+}
+
+/* widgets/chat_history_list_view.py */
+ChatHistoryListView {
+    border: round;
+}
+
+
+/* widgets/chat_history_list_item.py */
+ChatHistoryListItem {
+    padding: 1;
+    margin: 1;
+    height: auto;
+    border: round $secondary;
+    border-title-align: left;
+    border-title-style: underline;
+}
+
+.messageText {
+
+}
+
