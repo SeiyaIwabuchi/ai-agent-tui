@@ -10,6 +10,5 @@ Pythonのバージョンは3.12です。
 `pip install -r requirements.txt`
 
 # デバッグ
-`ptw --runner "textual run --dev app.py"`でデバッグできます。  
-
-これで起動するとコード変更と同時にリフレッシュされ開発が楽になります。
+VScodeでF5でデバッグを開始できます。
+ワークスペース設定でデバッグ中にF5を押した場合は再起動するようにしています。
