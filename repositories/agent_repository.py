@@ -1,7 +1,6 @@
 import asyncio
 from typing import Any, Callable
 from websocket import WebSocketApp, WebSocket
-import threading
 import httpx
 
 class AgentRepository:
@@ -17,7 +16,7 @@ class AgentRepository:
     
     @classmethod
     async def wait_for_agent_task(self, client_id: str):
-        async with httpx.AsyncClient(timeout=httpx.Timeout(60)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(3600)) as client:
             response = await client.get(f"http://{self.host}/wait_for_agent_task/{client_id}")
             response.raise_for_status()
             return response.json()
