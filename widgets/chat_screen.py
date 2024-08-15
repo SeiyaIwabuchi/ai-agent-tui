@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 
 from typing import List
@@ -9,15 +10,24 @@ from textual.reactive import Reactive
 
 from models.chat_history_model import ChatHistoryModel
 from repositories.agent_repository import AgentRepository
+from repositories.internal_message_queue import internal_message_queue
 from widgets.chat_history_list_view import ChatHistoryListView
 
 
 class ChatScreen(Vertical):
 
+    async def queue_loop(self):
+        while True:
+            if not internal_message_queue.empty():
+                self.chat_history_list_view.append(internal_message_queue.get())
+            await asyncio.sleep(1)
+
     def compose(self):
 
         self.chat_history_list_view = ChatHistoryListView(id="historyListView")
         self.input = Input(placeholder="プロンプトを入力...", id="promptFormInput")
+
+        asyncio.create_task(self.queue_loop())
 
         # コンテナにウィジェットを追加
         yield Vertical(

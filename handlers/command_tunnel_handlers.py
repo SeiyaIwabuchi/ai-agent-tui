@@ -1,6 +1,7 @@
 import asyncio
 import json
 from models.chat_history_model import ChatHistoryModel
+from repositories.internal_message_queue import internal_message_queue
 from repositories.agent_repository import AgentRepository
 from websocket import WebSocket
 import subprocess
@@ -13,9 +14,9 @@ class CommandTunnelHandlers:
 
     @staticmethod
     def on_message(ws: WebSocket, message):
-        command = json.loads(message)["command"]
         try:
-            chat_screen.chat_history_list_view.append(ChatHistoryModel("Debug Message", f"Execute command : {command}"))
+            command = json.loads(message)["command"]
+            internal_message_queue.put(ChatHistoryModel("Debug Message", f"Execute command : {command}"))
             result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
             print(f"{result.returncode=}")
             print(f"{result.stdout=}")
@@ -24,7 +25,7 @@ class CommandTunnelHandlers:
                 "stdout": result.stdout,
                 "stderr": result.stderr
             }
-            chat_screen.chat_history_list_view.append(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
+            internal_message_queue.put(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
             ws.send(json.dumps(exec_result))
         except subprocess.CalledProcessError as result:
             print(f"{result.returncode=}")
@@ -34,11 +35,12 @@ class CommandTunnelHandlers:
                 "stdout": result.stdout,
                 "stderr": result.stderr
             }
-            chat_screen.chat_history_list_view.append(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
+            internal_message_queue.put(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
             ws.send(json.dumps(exec_result))
         except:
             trace = traceback.format_exc()
             ws.close()
+            breakpoint()
 
     retrring = False
 
