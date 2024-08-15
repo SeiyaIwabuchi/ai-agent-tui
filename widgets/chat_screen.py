@@ -1,3 +1,5 @@
+import traceback
+
 from typing import List
 from textual import on, events
 from textual.app import App
@@ -30,10 +32,21 @@ class ChatScreen(Vertical):
         )
     
     @on(Button.Pressed, "#promptFormAddButton")
-    def on_send_presses(self, event: Button.Pressed):
+    async def on_send_presses(self, event: Button.Pressed):
         prompt = self.input.value
         self.input.value = ""
         self.chat_history_list_view.append(ChatHistoryModel("あなた", prompt))
-        agent_response = AgentRepository.sendMessage(prompt)
-        self.chat_history_list_view.append(ChatHistoryModel("エージェント", agent_response))
-        
+
+        try:
+            response = await AgentRepository.sendMessage(prompt)
+            client_id = response["client_id"]
+            websocketapp = AgentRepository.startCommandTunnel(client_id)
+            agent_response = await AgentRepository.wait_for_agent_task(client_id)
+            self.chat_history_list_view.append(ChatHistoryModel("エージェント", agent_response["answer"]))
+        except:
+            self.chat_history_list_view.append(ChatHistoryModel("システムエラー", traceback.format_exc()))
+        finally:
+            websocketapp.close()
+
+
+chat_screen = ChatScreen()

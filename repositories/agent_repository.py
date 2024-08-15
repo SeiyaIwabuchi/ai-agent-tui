@@ -2,12 +2,25 @@ import asyncio
 from typing import Any, Callable
 from websocket import WebSocketApp, WebSocket
 import threading
+import httpx
 
 class AgentRepository:
 
+    host = "172.18.0.3:8000"
+
     @classmethod
-    def sendMessage(self, message: str) -> str:
-        return f"「{message}」を受信しました。"
+    async def sendMessage(self, message: str) -> dict[str, str]:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"http://{self.host}/agent", json={ "message" : message })
+            response.raise_for_status()
+            return response.json()
+    
+    @classmethod
+    async def wait_for_agent_task(self, client_id: str):
+        async with httpx.AsyncClient(timeout=httpx.Timeout(60)) as client:
+            response = await client.get(f"http://{self.host}/wait_for_agent_task/{client_id}")
+            response.raise_for_status()
+            return response.json()
 
     # websocketの設定
 
@@ -18,7 +31,8 @@ class AgentRepository:
 
     commandTunnel: WebSocketApp = None
 
-    commandTunnelUrl = "ws://localhost:8765"
+    commandTunnelUrl = f"ws://{host}/ws/"
+    commandTunnelUrl += "{client_id}"
 
     @staticmethod
     def _common(ws: WebSocket):
@@ -49,9 +63,9 @@ class AgentRepository:
         AgentRepository.on_open(ws)
 
     @classmethod
-    def startCommandTunnel(self):
+    def startCommandTunnel(self, client_id: str):
         self.commandTunnel = WebSocketApp(
-            self.commandTunnelUrl,
+            self.commandTunnelUrl.format(client_id = client_id),
             on_open=self._on_open,
             on_message=self._on_message,
             on_error=self._on_error,

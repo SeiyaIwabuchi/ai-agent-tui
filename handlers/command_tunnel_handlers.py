@@ -1,34 +1,55 @@
 import asyncio
+import json
+from models.chat_history_model import ChatHistoryModel
 from repositories.agent_repository import AgentRepository
 from websocket import WebSocket
 import subprocess
 import time
+import traceback
+
+from widgets.chat_screen import chat_screen
 
 class CommandTunnelHandlers:
 
     @staticmethod
     def on_message(ws: WebSocket, message):
+        command = json.loads(message)["command"]
         try:
-            result = subprocess.run(message, shell=True, capture_output=True, text=True, check=True)
+            chat_screen.chat_history_list_view.append(ChatHistoryModel("Debug Message", f"Execute command : {command}"))
+            result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
             print(f"{result.returncode=}")
             print(f"{result.stdout=}")
             print(f"{result.stderr=}")
-            ws.send(result.stdout + "\n" + result.stderr)
+            exec_result = {
+                "stdout": result.stdout,
+                "stderr": result.stderr
+            }
+            chat_screen.chat_history_list_view.append(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
+            ws.send(json.dumps(exec_result))
         except subprocess.CalledProcessError as result:
             print(f"{result.returncode=}")
             print(f"{result.stdout=}")
             print(f"{result.stderr=}")
-            ws.send(result.stdout + "\n" + result.stderr)
+            exec_result = {
+                "stdout": result.stdout,
+                "stderr": result.stderr
+            }
+            chat_screen.chat_history_list_view.append(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
+            ws.send(json.dumps(exec_result))
+        except:
+            trace = traceback.format_exc()
+            ws.close()
 
     retrring = False
 
     @staticmethod
     def on_close(ws: WebSocket, close_status_code, close_msg):
-            if not CommandTunnelHandlers.retrring:
-                CommandTunnelHandlers.retrring = True
-                time.sleep(3)
-                AgentRepository.startCommandTunnel()
-                CommandTunnelHandlers.retrring = False
+        pass
+            # if not CommandTunnelHandlers.retrring:
+            #     CommandTunnelHandlers.retrring = True
+            #     time.sleep(3)
+            #     AgentRepository.startCommandTunnel()
+            #     CommandTunnelHandlers.retrring = False
 
     @staticmethod
     def on_open(ws: WebSocket):
