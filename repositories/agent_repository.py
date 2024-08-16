@@ -20,6 +20,13 @@ class AgentRepository:
             response = await client.get(f"http://{self.host}/wait_for_agent_task/{client_id}")
             response.raise_for_status()
             return response.json()
+        
+    @classmethod
+    async def simple_chat(self, message: str):
+        async with httpx.AsyncClient(timeout=httpx.Timeout(3600)) as client:
+            response = await client.post(f"http://{self.host}/chat", json={ "message" : message })
+            response.raise_for_status()
+            return response.json()
 
     # websocketの設定
 

@@ -1,9 +1,5 @@
-from typing import List
-from textual import on, events
-from textual.app import App
-from textual.widgets import Button, Input, Static, ListItem, ListView, Label
-from textual.containers import Horizontal, Vertical, Container
-from textual.reactive import Reactive
+from textual.widgets import Markdown
+from textual.containers import Vertical
 
 
 class ChatHistoryListItem(Vertical):
@@ -20,5 +16,5 @@ class ChatHistoryListItem(Vertical):
 
         self.border_title = self.sender
 
-        yield Label(self.messageText,classes="messageText")
+        yield Markdown(self.messageText,classes="messageText")
             

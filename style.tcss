@@ -17,7 +17,11 @@ Screen {
 }
 
 #promptFormInput {
-    
+}
+
+#modeSelect {
+    width: 25;
+    dock: left;
 }
 
 #promptFormAddButton {
@@ -41,6 +45,7 @@ ChatHistoryListItem {
 }
 
 .messageText {
-
+    margin: 0;
+    padding: 0;
 }
 

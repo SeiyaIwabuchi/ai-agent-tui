@@ -25,7 +25,7 @@ class CommandTunnelHandlers:
                 "stdout": result.stdout,
                 "stderr": result.stderr
             }
-            internal_message_queue.put(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
+            internal_message_queue.put(ChatHistoryModel("Debug Message", f"Retuen message to server\n----------\n{exec_result}"))
             ws.send(json.dumps(exec_result))
         except subprocess.CalledProcessError as result:
             print(f"{result.returncode=}")
@@ -35,7 +35,7 @@ class CommandTunnelHandlers:
                 "stdout": result.stdout,
                 "stderr": result.stderr
             }
-            internal_message_queue.put(ChatHistoryModel("Debug Message", f"Retuen message\n----------\n{exec_result}"))
+            internal_message_queue.put(ChatHistoryModel("Debug Message", f"Retuen message to server \n----------\n{exec_result}"))
             ws.send(json.dumps(exec_result))
         except:
             trace = traceback.format_exc()
