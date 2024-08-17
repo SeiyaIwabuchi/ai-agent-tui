@@ -3,21 +3,31 @@ from typing import Any, Callable
 from websocket import WebSocketApp, WebSocket
 import httpx
 
+from repositories.env import host
+
 class AgentRepository:
 
-    host = "172.18.0.3:8000"
+    host = host
+    client_id: str = None
 
     @classmethod
-    async def sendMessage(self, message: str) -> dict[str, str]:
+    async def start_thread(self) -> dict[str, str]:
         async with httpx.AsyncClient() as client:
-            response = await client.post(f"http://{self.host}/agent", json={ "message" : message })
+            response = await client.get(f"http://{self.host}/agent")
             response.raise_for_status()
             return response.json()
+        
+    @classmethod
+    async def is_alive_thread(self) -> bool:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"http://{self.host}/is_alive_thread/{self.client_id}")
+            response.raise_for_status()
+            return response.json()["result"]
     
     @classmethod
-    async def wait_for_agent_task(self, client_id: str):
+    async def wait_for_agent_task(self, message: str):
         async with httpx.AsyncClient(timeout=httpx.Timeout(3600)) as client:
-            response = await client.get(f"http://{self.host}/wait_for_agent_task/{client_id}")
+            response = await client.post(f"http://{self.host}/wait_for_agent_task", json={"client_id": self.client_id, "message": message})
             response.raise_for_status()
             return response.json()
         
@@ -69,9 +79,9 @@ class AgentRepository:
         AgentRepository.on_open(ws)
 
     @classmethod
-    def startCommandTunnel(self, client_id: str):
+    def startCommandTunnel(self):
         self.commandTunnel = WebSocketApp(
-            self.commandTunnelUrl.format(client_id = client_id),
+            self.commandTunnelUrl.format(client_id = self.client_id),
             on_open=self._on_open,
             on_message=self._on_message,
             on_error=self._on_error,

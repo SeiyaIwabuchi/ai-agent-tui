@@ -1,4 +1,5 @@
 from handlers.command_tunnel_handlers import CommandTunnelHandlers
+from repositories.agent_repository import AgentRepository
 from widgets.chat_screen import chat_screen
 from textual.app import App
 
