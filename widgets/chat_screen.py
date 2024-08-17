@@ -55,6 +55,7 @@ class ChatScreen(Vertical):
         prompt = self.input.value
         self.input.value = ""
         self.chat_history_list_view.append(ChatHistoryModel("あなた", prompt))
+        websocketapp = None
 
         if self.mode_select.value == Mode.Agent:
             try:
@@ -67,7 +68,8 @@ class ChatScreen(Vertical):
                 self.chat_history_list_view.append(ChatHistoryModel("システムエラー", traceback.format_exc()))
                 traceback.print_exc()
             finally:
-                websocketapp.close()
+                if websocketapp:
+                    websocketapp.close()
         else:
             try:
                 response = await AgentRepository.simple_chat(prompt)
