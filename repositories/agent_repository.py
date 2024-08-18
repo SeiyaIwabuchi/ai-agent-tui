@@ -1,10 +1,10 @@
 import asyncio
-import json
 import platform
 from typing import Any, Callable
 from websocket import WebSocketApp, WebSocket
 import httpx
 
+from constans.errors import Errors
 from repositories.env import host
 
 class AgentRepository:
@@ -29,15 +29,18 @@ class AgentRepository:
     @classmethod
     async def wait_for_agent_task(self, message: str):
         async with httpx.AsyncClient(timeout=httpx.Timeout(3600)) as client:
-            response = await client.post(f"http://{self.host}/wait_for_agent_task", json={"client_id": self.client_id, "message": message})
-            try:
-                response.raise_for_status()
-                return response.json()
-            except httpx.HTTPStatusError as ex:
-                if ex.response.headers["Content-Type"] == "application/json":
-                    return ex.response.json()
-                else:
-                    raise ex
+            for _ in range(10):
+                try:
+                    response = await client.post(f"http://{self.host}/wait_for_agent_task", json={"client_id": self.client_id, "message": message})
+                    response.raise_for_status()
+                    return response.json()
+                except httpx.HTTPStatusError as ex:
+                    if ex.response.headers["Content-Type"] == "application/json":
+                        if  Errors.value_of(ex.response.json()["code"]) not in (Errors.OpenaiAPIConnectionError, Errors.HttpxReadTimeout, Errors.Duckduckgo_searchExceptionsTimeoutException):
+                            raise ex
+                        await asyncio.sleep(10)
+                    else:
+                        raise ex
         
     @classmethod
     async def simple_chat(self, message: str):
