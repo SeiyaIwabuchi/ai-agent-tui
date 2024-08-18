@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "app.py",
-            // "console": "integratedTerminal",
+            "console": "externalTerminal",
             // "postDebugTask": "closeTerminal"
         }
     ]

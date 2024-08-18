@@ -1,4 +1,6 @@
 import asyncio
+import json
+import platform
 from typing import Any, Callable
 from websocket import WebSocketApp, WebSocket
 import httpx
@@ -13,7 +15,7 @@ class AgentRepository:
     @classmethod
     async def start_thread(self) -> dict[str, str]:
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"http://{self.host}/agent")
+            response = await client.get(f"http://{self.host}/agent?platform={self._get_platform()}")
             response.raise_for_status()
             return response.json()
         
@@ -28,8 +30,14 @@ class AgentRepository:
     async def wait_for_agent_task(self, message: str):
         async with httpx.AsyncClient(timeout=httpx.Timeout(3600)) as client:
             response = await client.post(f"http://{self.host}/wait_for_agent_task", json={"client_id": self.client_id, "message": message})
-            response.raise_for_status()
-            return response.json()
+            try:
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as ex:
+                if ex.response.headers["Content-Type"] == "application/json":
+                    return ex.response.json()
+                else:
+                    raise ex
         
     @classmethod
     async def simple_chat(self, message: str):
@@ -37,6 +45,14 @@ class AgentRepository:
             response = await client.post(f"http://{self.host}/chat", json={ "message" : message })
             response.raise_for_status()
             return response.json()
+        
+    @classmethod
+    def _get_platform(self) -> str:
+        """Get platform."""
+        system = platform.system()
+        if system == "Darwin":
+            return "MacOS"
+        return system
 
     # websocketの設定
 

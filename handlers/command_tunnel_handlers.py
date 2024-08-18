@@ -1,11 +1,9 @@
-import asyncio
 import json
 from models.chat_history_model import ChatHistoryModel
 from repositories.internal_message_queue import internal_message_queue
 from repositories.agent_repository import AgentRepository
 from websocket import WebSocket
 import subprocess
-import time
 import traceback
 
 from widgets.chat_screen import chat_screen
@@ -17,7 +15,7 @@ class CommandTunnelHandlers:
         try:
             command = json.loads(message)["command"]
             internal_message_queue.put(ChatHistoryModel("Debug Message", f"Execute command : {command}"))
-            result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+            result = subprocess.run("powershell -Command " + command, shell=True, capture_output=True, text=True, check=True)
             print(f"{result.returncode=}")
             print(f"{result.stdout=}")
             print(f"{result.stderr=}")
